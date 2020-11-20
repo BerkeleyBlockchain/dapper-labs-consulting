@@ -12,7 +12,7 @@ We will be installing the [flow emulator](), installing and configuring the [dev
 
 ### Setup dapp
 ```sh
-git clone git@github.com:dangerousfood/create-flow-dapp.git
+git clone https://github.com/BerkeleyBlockchain/dapper-labs-consulting.git
 cd create-flow-dapp
 npm install
 ```
