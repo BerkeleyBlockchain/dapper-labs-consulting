@@ -10,7 +10,10 @@ import FlowToken from './contracts/build/FlowToken'
 import LPToken from './contracts/build/LPToken'
 import DapperDex from './contracts/build/DapperDex'
 // Transaction imports 
-import Trans1 from './contracts/build/Transaction'
+import CreateEmptyFlowVault from './contracts/build/CreateEmptyVault_flow'
+import CreateEmptyBabVault from './contracts/build/CreateEmptyVault_bab'
+import FundEmptyFlowVault from './contracts/build/FundEmptyVault_flow'
+import FundEmptyBabVault from './contracts/build/FundEmptyVault_bab'
 
 
 class DappExample extends React.Component {
@@ -85,12 +88,25 @@ class DappExample extends React.Component {
         })
     }
 
-    sendTransaction() {
+    sendTransaction(vaultName) {
+      var vName;
+      if(vaultName === "cvflow") {
+        vName = CreateEmptyFlowVault
+      } else if (vaultName === "cvbab") {
+        vName = CreateEmptyBabVault
+      } else if (vaultName === "ftbab") {
+        vName = FundEmptyBabVault
+      } else if (vaultName === "ftflow") {
+        vName = FundEmptyFlowVault
+      } else {
+        return 0
+      }
+
       this.setState({
         transaction: undefined
-      });
-      // ERRON IN THE CODE
-      sendTransaction(Trans1, this.state.authUsers.reverse()).then((resolve, reject) => {
+      }); 
+
+      sendTransaction(vName, this.state.authUsers).then((resolve, reject) => {
         this.setState({
           transaction: resolve
         });
@@ -106,7 +122,7 @@ class DappExample extends React.Component {
     console.log(this.state.authUsers)
     }
 
-    render() {
+    render() { 
      return (
         <React.Fragment>
             <h1> Current User: {this.state.account} </h1>
@@ -153,8 +169,22 @@ class DappExample extends React.Component {
             {JSON.stringify(this.state.transaction, null, 2)}
           </pre>
 
-          <button onClick={this.sendTransaction} >
-            send transaction 1
+          <button onClick={() => this.sendTransaction('cvflow')} >
+            Create Empty Vault flow
+          </button>
+
+          <button onClick={() => this.sendTransaction('cvbab')} >
+            Create Empty Vault bab
+          </button>
+
+          <br/> <br/>
+
+          <button onClick={() => this.sendTransaction('ftflow')} >
+            FUND Empty Vault flow
+          </button>
+
+          <button onClick={() => this.sendTransaction('ftbab')} >
+            FUND Empty Vault bab
           </button>
 
           <button onClick = {this.getAuth}>
@@ -200,10 +230,7 @@ const sendTransaction = async (code, auth) => {
     fcl.proposer(authz),
     fcl.payer(authz),
     fcl.authorizations([
-      auth[0],
-      auth[1],
-      auth[2],
-      auth[3]
+      authz
     ]),
     fcl.limit(1000)
   ])

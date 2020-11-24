@@ -1,6 +1,6 @@
 // Transaction1.cdc
 
-import FlowToken from 0x179b6b1cb6755e31
+import FlowToken from 0x01cf0e2f2f715450
 
 // This transaction creates the followings
 // At prepare
