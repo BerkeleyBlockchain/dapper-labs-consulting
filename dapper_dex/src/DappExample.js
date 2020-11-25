@@ -14,14 +14,20 @@ import CreateEmptyFlowVault from './contracts/build/CreateEmptyVault_flow'
 import CreateEmptyBabVault from './contracts/build/CreateEmptyVault_bab'
 import FundEmptyFlowVault from './contracts/build/FundEmptyVault_flow'
 import FundEmptyBabVault from './contracts/build/FundEmptyVault_bab'
+import CheckFlowBabBalance from './contracts/build/CheckBalance'
+import CreatePeacockDex from './contracts/build/CreateDex'
+import SwapXtoY from './contracts/build/SwapXtoY'
 
 
 class DappExample extends React.Component {
     constructor() {
       super();
       this.state = {
-        authUsers: []
+        authUsers: [],
+        babBalance: 0,
+        flowBalance: 0,
       }
+
       this.sendTransaction = this.sendTransaction.bind(this)
       this.deployContract = this.deployContract.bind(this)
       this.sendScript = this.sendScript.bind(this)
@@ -31,7 +37,42 @@ class DappExample extends React.Component {
     }
 
     componentDidMount() {
-      this.unauthenticate()
+      this.unauthenticate() 
+    }
+
+
+    checkBalance = () => {
+      sendTransaction(CheckFlowBabBalance, this.state.authUsers).then((resolve, reject) => {
+        console.log(resolve)
+        this.setState({
+          transaction: resolve
+        });
+      }).catch(err => {
+        console.log(err)
+      })
+    }
+
+
+    createDex = () => {
+      sendTransaction(CreatePeacockDex, this.state.authUsers).then((resolve, reject) => {
+        console.log(resolve)
+        this.setState({
+          transaction: resolve
+        });
+      }).catch(err => {
+        console.log(err)
+      })
+    }
+
+    swapTokens = () => {
+      sendTransaction(SwapXtoY, this.state.authUsers).then((resolve, reject) => {
+        console.log(resolve)
+        this.setState({
+          transaction: resolve
+        });
+      }).catch(err => {
+        console.log(err)
+      })
     }
 
     authenticate(){
@@ -115,6 +156,8 @@ class DappExample extends React.Component {
       })
     }
 
+
+
     getAuth (){ 
       this.setState(previousState => ({
         authUsers: [...previousState.authUsers, fcl.currentUser().authorization]
@@ -126,6 +169,8 @@ class DappExample extends React.Component {
      return (
         <React.Fragment>
             <h1> Current User: {this.state.account} </h1>
+            <p> Flow balance: {this.state.flowBalance} </p>
+            <p> Bab Balance: {this.state.babBalance} </p>
           <button onClick={this.authenticate} disabled={this.state.account !== undefined}>
             authenticate
           </button>
@@ -133,15 +178,6 @@ class DappExample extends React.Component {
           <button onClick={this.unauthenticate} disabled={this.state.account === undefined}>
             unauthenticate
           </button>
-
-          <pre className="textBox">
-            {JSON.stringify(this.state.script, null, 2)}
-          </pre>
-
-          <button onClick={this.sendScript}>
-            send script
-          </button>
-
 
           <pre className="textBox">
             {JSON.stringify(this.state.contract, null, 2)}
@@ -185,10 +221,22 @@ class DappExample extends React.Component {
 
           <button onClick={() => this.sendTransaction('ftbab')} >
             FUND Empty Vault bab
+          </button> 
+          
+          <br/> <br/>
+          
+          <button onClick = {() => this.checkBalance()}>
+            Get balance 
           </button>
 
-          <button onClick = {this.getAuth}>
-            Get Auth Z
+          <button onClick = {() => this.createDex()}>
+            Create Peacock Dex 🦚
+          </button>
+          
+          <br/> <br/>
+
+          <button onClick = {() => this.swapTokens()}>
+            SWAP X TO Y
           </button>
 
         </React.Fragment>

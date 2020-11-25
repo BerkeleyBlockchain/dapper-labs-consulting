@@ -13,7 +13,7 @@ pub contract DapperDex {
         output_reserve:UFix64
     ): UFix64 
     pub fun depositLiquidity(from1: @FlowToken.Vault, from2: @BabToken.Vault, to: &AnyResource{LPToken.Receiver}, x_amount:UFix64)
-    pub fun withdrawLiquidity(from: @LPToken.Vault, to1:&AnyResource{FlowToken.Receiver}, to2:&AnyResource{BabToken.Receiver}, amount:UFix64)
+    pub fun withdrawLiquidity(from: @LPToken.Vault, to1:&AnyResource{FlowToken.Receiver}, to2:&AnyResource{BabToken.Receiver}, lp_amount:UFix64)
   }
 
   pub resource Pool: PoolPublic {
@@ -27,15 +27,17 @@ pub contract DapperDex {
     init(
         x: @FlowToken.Vault,
         y: @BabToken.Vault,
-        lp: @LPToken.Vault,
         mint: &LPToken.VaultMinter
+        fee: UFix64
+        initial_lp_receiver: &AnyResource{LPToken.Receiver}
     ){
         self.xVault <- x
         self.yVault <- y
-        self.lpVault <- lp
-        self.fee = 0.0025
+        self.lpVault <- LPToken.createEmptyVault()
+        self.fee = fee
         self.totalLPTokens = self.xVault.balance
         self.mintingRef = mint
+        self.mintingRef.mintTokens(amount: UFix64(self.totalLPTokens), recipient: initial_lp_receiver)
     }
 
     pub fun depositLiquidity(
@@ -44,40 +46,41 @@ pub contract DapperDex {
         to: &AnyResource{LPToken.Receiver}, 
         x_amount:UFix64
     ) {
-      // TODO: CHECKS TO MAKE SURE THEY HAVE x_amount and y_amount in tthe Flow and BAB Token Vaults
+
+      assert(x_amount <= from1.balance, message: "Intended x amount is greater than X vault Balance")
+
       let ratio = self.yVault.balance / self.xVault.balance
       let y_amount = ratio * x_amount
+      assert(y_amount <= from2.balance, message: "Intended y amount is greater than Y vault Balance")
+
       let numLPTokens = (x_amount / self.xVault.balance) * self.totalLPTokens
 
       self.xVault.deposit(from: <- from1)
       self.yVault.deposit(from: <- from2)
-      // to.deposit(from: <- self.lpVault.withdraw(amount:numLPTokens))
       
       self.mintingRef.mintTokens(amount: UFix64(numLPTokens), recipient: to)
 
       self.totalLPTokens = self.totalLPTokens + numLPTokens
         
-
-      //log("Depositing liquidity")
-
     }
 
     pub fun withdrawLiquidity(
       from: @LPToken.Vault, 
       to1:&AnyResource{FlowToken.Receiver}, 
       to2:&AnyResource{BabToken.Receiver}, 
-      amount:UFix64
+      lp_amount:UFix64
     ) {
-      // TODO: CHECK THEY ACTUALLY HAVE AMOUNT SPECIFICIED IN LPTOKEN.VAULT....also burn tokens from user vault somehow
 
-      let ratio = amount / self.totalLPTokens
+      assert(lp_amount <= from.balance, message: "Intended LP amount is greater than LP vault Balance")
+
+      let ratio = lp_amount / self.totalLPTokens
 
       // Amount to give the withdrawer
       let numXTokens = ratio * self.xVault.balance
       let numYTokens = ratio * self.yVault.balance
 
       self.lpVault.deposit(from: <- from)
-      self.totalLPTokens = self.totalLPTokens - amount 
+      self.totalLPTokens = self.totalLPTokens - lp_amount 
       to1.deposit(from: <- self.xVault.withdraw(amount:numXTokens))
       to2.deposit(from: <- self.yVault.withdraw(amount:numYTokens))
     }
@@ -153,16 +156,16 @@ pub contract DapperDex {
       destroy self.xVault
       destroy self.yVault
       destroy self.lpVault
-      
     }
   } 
   
   pub fun createDex(
     x: @FlowToken.Vault,
     y: @BabToken.Vault,
-    lp: @LPToken.Vault,
-    mint: &LPToken.VaultMinter
+    mint: &LPToken.VaultMinter,
+    fee: UFix64,
+    lp_receiver: &AnyResource{LPToken.Receiver}
   ): @Pool {
-    return <- create Pool(x: <- x, y: <- y, lp: <- lp, mint: mint)
+    return <- create Pool(x: <- x, y: <- y, mint: mint, fee: fee, initial_lp_receiver: lp_receiver)
   }
 }

@@ -14,7 +14,7 @@ transaction {
                                  (from: /storage/BabMinter)
                                         ?? panic("Could not borrow a reference to the minter")
  
-    let recipient = getAccount(0x179b6b1cb6755e31) // FLOW TOKEN ADDRESS
+    let recipient = getAccount(0x01cf0e2f2f715450) // All account address except BAB
     let cap = recipient.getCapability(/public/BabReceiver)!
  
     self.receiverRef =  cap.borrow<&BabToken.Vault{BabToken.Receiver, BabToken.Balance}>()
@@ -27,10 +27,5 @@ transaction {
     }
 
   post {
- 
-    getAccount(0x179b6b1cb6755e31).getCapability(/public/BabReceiver)!
-                    .check<&BabToken.Vault{BabToken.Receiver}>():
-                    "0x01 Vault Receiver Reference was not created correctly"
-
     }
 }

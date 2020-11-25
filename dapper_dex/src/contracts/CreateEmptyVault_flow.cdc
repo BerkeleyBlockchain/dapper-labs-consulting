@@ -20,9 +20,6 @@ transaction {
     }
 
   post {
-    // account address LP TOKEN
-    getAccount(0xe03daebed8ca0615).getCapability(/public/FlowReceiver)!
-                    .check<&FlowToken.Vault{FlowToken.Receiver}>():
-                    "0x01 Vault Receiver Reference was not created correctly"
+
     }
 }
