@@ -14,7 +14,7 @@ transaction {
                                  (from: /storage/BabMinter)
                                         ?? panic("Could not borrow a reference to the minter")
  
-    let recipient = getAccount(0x01cf0e2f2f715450) // All account address except BAB
+    let recipient = getAccount(0xf3fcd2c1a78f5eee) // All account address except BAB
     let cap = recipient.getCapability(/public/BabReceiver)!
  
     self.receiverRef =  cap.borrow<&BabToken.Vault{BabToken.Receiver, BabToken.Balance}>()

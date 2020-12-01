@@ -66,7 +66,7 @@ pub contract FlowToken {
 
         // Create a new MintAndBurn resource and store it in account storage
         self.account.save(<-create VaultMinter(), to: /storage/FlowMinter)
-
+        self.account.link<&FlowToken.Vault{FlowToken.Receiver, FlowToken.Balance}>(/public/FlowReceiver, target: /storage/FlowVault)
         self.account.link<&VaultMinter>(/private/Minter, target: /storage/FlowMinter)
     }
 }

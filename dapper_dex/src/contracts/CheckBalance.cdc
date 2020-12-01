@@ -1,25 +1,34 @@
-import FlowToken from 0x179b6b1cb6755e31
+// Script1.cdc
+import FlowToken from 0x179b6b1cb6755e31 
 import BabToken from 0x01cf0e2f2f715450
+
+// This script reads the Vault balances of two accounts.
+pub fun main(address:Address): AnyStruct? {
+    // Get the accounts' public account objects
+     
+
+    // Get references to the account's receivers
+    // by getting their public capability
+    // and borrowing a reference from the capability
+    log("CALLED SCRIPT ")
+    let acct1ReceiverRef = getAccount(address).getCapability(/public/FlowReceiver)!
+                            .borrow<&FlowToken.Vault{FlowToken.Balance}>()
+                            ?? panic("Er 1")
+
+    log("GOT ACT1 RECIEVER REF")
+    let acct2ReceiverRef = getAccount(address).getCapability(/public/BabReceiver)!
+                            .borrow<&BabToken.Vault{BabToken.Balance}>()
+                            ?? panic("Er 2")
+
+    log("GOT ACT1 RECIEVER REF")
+    /*let acct3ReceiverRef = acct1.getCapability(/public/LPReceiver)!
+                            .borrow<&LPToken.Vault{LPToken.Balance}>()
+                            ?? panic("Could not borrow a reference to the acct1 receiver")
+    */ 
     
-transaction {
-    prepare(acct: AuthAccount) { 
-        
-        // Borrow references to the stored Vault
-        let flowVault = acct.borrow<&{FlowToken.Receiver, FlowToken.Provider, FlowToken.Balance}>(from: /storage/FlowVault)
-            ?? panic("Could not borrow a reference to 0x03's Flow Vault")
-        let babVault = acct.borrow<&{BabToken.Receiver, BabToken.Provider, BabToken.Balance}>(from: /storage/BabVault)
-            ?? panic("Could not borrow a reference to 0x03's BabVault")
+    log(acct1ReceiverRef.balance)
+    // Use optional chaining to read and log balance fields
+    return {"flowBalance": acct1ReceiverRef.balance, "babBalance": acct2ReceiverRef.balance}
 
-        let flowBalance = flowVault.balance
-        let babBalance = babVault.balance
-
-        log(flowBalance)
-        log(babBalance)
-        
-    }
-
-    execute {
-        log("SUCCESS")
-    }
- 
+    
 }

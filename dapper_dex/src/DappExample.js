@@ -3,6 +3,7 @@ import * as fcl from '@onflow/fcl';
 import hello from './contracts/build/HelloWorld.js'
 import script from './contracts/build/Script.js'
 import { template as setCode } from "@onflow/six-set-code"
+import * as t from "@onflow/types"
 import './DappExample.css'
 // Dapper imports 
 import BabToken from './contracts/build/BabToken'
@@ -18,7 +19,6 @@ import CheckFlowBabBalance from './contracts/build/CheckBalance'
 import CreatePeacockDex from './contracts/build/CreateDex'
 import SwapXtoY from './contracts/build/SwapXtoY'
 
-
 class DappExample extends React.Component {
     constructor() {
       super();
@@ -27,6 +27,7 @@ class DappExample extends React.Component {
         babBalance: 0,
         flowBalance: 0,
       }
+     
 
       this.sendTransaction = this.sendTransaction.bind(this)
       this.deployContract = this.deployContract.bind(this)
@@ -40,21 +41,20 @@ class DappExample extends React.Component {
       this.unauthenticate() 
     }
 
-
     checkBalance = () => {
-      sendTransaction(CheckFlowBabBalance, this.state.authUsers).then((resolve, reject) => {
+      this.sendScript(CheckFlowBabBalance).then((resolve, reject) => {
         console.log(resolve)
         this.setState({
-          transaction: resolve
+          flowBalance: resolve.flowBalance,
+          babBalance: resolve.babBalance
         });
       }).catch(err => {
         console.log(err)
       })
     }
 
-
     createDex = () => {
-      sendTransaction(CreatePeacockDex, this.state.authUsers).then((resolve, reject) => {
+      this.sendTransaction(CreatePeacockDex, this.state.authUsers).then((resolve, reject) => {
         console.log(resolve)
         this.setState({
           transaction: resolve
@@ -65,7 +65,7 @@ class DappExample extends React.Component {
     }
 
     swapTokens = () => {
-      sendTransaction(SwapXtoY, this.state.authUsers).then((resolve, reject) => {
+      this.sendTransaction(SwapXtoY, this.state.authUsers).then((resolve, reject) => {
         console.log(resolve)
         this.setState({
           transaction: resolve
@@ -78,7 +78,9 @@ class DappExample extends React.Component {
     authenticate(){
       fcl.authenticate().then((response) => {
         console.log(response)
-        this.setState({account: response.addr});
+        this.setState({account: response.addr}, () => {
+          //this.checkBalance()
+        });
       })
     }
     
@@ -91,19 +93,20 @@ class DappExample extends React.Component {
       this.setState({
         script: undefined
       });
-      sendScript(script).then((resolve, reject) => {
+      this.sendScript(script).then((resolve, reject) => {
         this.setState({
           script: resolve
         });
     })
     }
 
-    deployContract(contractName) {   
+    deployContractCall(contractName) {   
       var cName;
+      
       this.setState({
         contract: undefined,
         address: undefined
-      });
+      })
 
      if(contractName === "bab") {
         cName = BabToken
@@ -118,7 +121,7 @@ class DappExample extends React.Component {
         return 0
       } 
 
-      deployContract(cName).then((resolve, reject) => { 
+      this.deployContract(cName).then((resolve, reject) => { 
             console.log(resolve)
             this.setState({
               contract: resolve,
@@ -129,13 +132,32 @@ class DappExample extends React.Component {
         })
     }
 
-    sendTransaction(vaultName) {
+    createVaultTransaction(vaultName) {
       var vName;
       if(vaultName === "cvflow") {
         vName = CreateEmptyFlowVault
       } else if (vaultName === "cvbab") {
         vName = CreateEmptyBabVault
-      } else if (vaultName === "ftbab") {
+      } else {
+        return 0
+      }
+
+      this.setState({
+        transaction: undefined
+      }); 
+
+      this.sendTransaction(vName, this.state.authUsers).then((resolve, reject) => {
+        this.setState({
+          transaction: resolve
+        });
+      }).catch(err => {
+        console.log(err)
+      })
+    }
+
+    fundVaultTransaction(vaultName) {
+      var vName;
+       if (vaultName === "ftbab") {
         vName = FundEmptyBabVault
       } else if (vaultName === "ftflow") {
         vName = FundEmptyFlowVault
@@ -147,16 +169,18 @@ class DappExample extends React.Component {
         transaction: undefined
       }); 
 
-      sendTransaction(vName, this.state.authUsers).then((resolve, reject) => {
+      this.sendTransaction(vName, this.state.authUsers).then((resolve, reject) => {
         this.setState({
           transaction: resolve
-        });
+        }, () => {
+          //this.checkBalance()
+        })
       }).catch(err => {
         console.log(err)
       })
+
+
     }
-
-
 
     getAuth (){ 
       this.setState(previousState => ({
@@ -164,6 +188,60 @@ class DappExample extends React.Component {
     }));
     console.log(this.state.authUsers)
     }
+
+    /**
+     * FLOW CORE FUNCTIONS  
+     **/
+    sendScript = async (code) => { 
+      console.log(this.state.account)
+      return fcl.send([
+              fcl.script(code), 
+              fcl.args([
+                fcl.arg(this.state.account, t.Address),
+              ])
+      ]).then(fcl.decode);
+
+      //return response;
+    };
+
+    deployContract = async (code) => {
+    const authz = fcl.currentUser().authorization
+    const response = await fcl.send([
+        setCode({
+            proposer: authz,
+            authorization: authz,     
+            payer: authz,             
+            code: code, 
+        }),
+      fcl.limit(1000),
+    ])
+
+    try { 
+    return await fcl.tx(response).onceExecuted()
+    } catch (error) { 
+    return error;
+    }
+    }
+
+    sendTransaction = async (code, auth) => {
+    const authz = fcl.currentUser().authorization
+    const response = await fcl.send([
+    fcl.transaction(code),
+    fcl.proposer(authz),
+    fcl.payer(authz),
+    fcl.authorizations([
+      authz
+    ]),
+    fcl.limit(1000)
+    ])
+
+    try {
+    return await fcl.tx(response).onceExecuted()
+    } catch (error) {
+    return error;
+    }
+    }
+
 
     render() { 
      return (
@@ -184,19 +262,19 @@ class DappExample extends React.Component {
           </pre> 
 
         <div style = {{display: 'inline-block'}}> 
-          <button variant = "primary" onClick={() => this.deployContract("bab")} disabled={this.state.account === undefined}>
+          <button variant = "primary" onClick={() => this.deployContractCall("bab")} disabled={this.state.account === undefined}>
             deploy  BABToken contracts
           </button>
           &nbsp;
-          <button variant = "primary" onClick={() => this.deployContract("flow")} disabled={this.state.account === undefined}>
+          <button variant = "primary" onClick={() => this.deployContractCall("flow")} disabled={this.state.account === undefined}>
             deploy FLOWToken contracts
           </button>
           &nbsp;
-          <button variant = "primary" onClick={() => this.deployContract("lp")} disabled={this.state.account === undefined}>
+          <button variant = "primary" onClick={() => this.deployContractCall("lp")} disabled={this.state.account === undefined}>
             deploy LPtoken contracts
           </button>
           &nbsp;
-          <button variant = "primary" onClick={() => this.deployContract("dex")} disabled={this.state.account === undefined}>
+          <button variant = "primary" onClick={() => this.deployContractCall("dex")} disabled={this.state.account === undefined}>
             deploy Dapper Dex contracts
           </button>
         </div>
@@ -205,21 +283,21 @@ class DappExample extends React.Component {
             {JSON.stringify(this.state.transaction, null, 2)}
           </pre>
 
-          <button onClick={() => this.sendTransaction('cvflow')} >
+          <button onClick={() => this.createVaultTransaction('cvflow')} >
             Create Empty Vault flow
           </button>
 
-          <button onClick={() => this.sendTransaction('cvbab')} >
+          <button onClick={() => this.createVaultTransaction('cvbab')} >
             Create Empty Vault bab
           </button>
 
           <br/> <br/>
 
-          <button onClick={() => this.sendTransaction('ftflow')} >
+          <button onClick={() => this.fundVaultTransaction('ftflow')} >
             FUND Empty Vault flow
           </button>
 
-          <button onClick={() => this.sendTransaction('ftbab')} >
+          <button onClick={() => this.fundVaultTransaction('ftbab')} >
             FUND Empty Vault bab
           </button> 
           
@@ -244,49 +322,4 @@ class DappExample extends React.Component {
     }
   }
 export default DappExample;
-
-const sendScript = async (code) => {
-        const response = await fcl.send([
-                fcl.script(code)
-            ]);
-        return await fcl.decode(response);
-    };
- 
-const deployContract = async (code) => {
-  const authz = fcl.currentUser().authorization
-    const response = await fcl.send([
-        setCode({
-            proposer: authz,
-            authorization: authz,     
-            payer: authz,             
-            code: code, 
-        }),
-       fcl.limit(1000),
-    ])
-  
-  try { 
-    return await fcl.tx(response).onceExecuted()
-  } catch (error) { 
-    return error;
-  }
-}
-
-const sendTransaction = async (code, auth) => {
-  const authz = fcl.currentUser().authorization
-  const response = await fcl.send([
-    fcl.transaction(code),
-    fcl.proposer(authz),
-    fcl.payer(authz),
-    fcl.authorizations([
-      authz
-    ]),
-    fcl.limit(1000)
-  ])
-
-  try {
-    return await fcl.tx(response).onceExecuted()
-  } catch (error) {
-    return error;
-  }
-}
  

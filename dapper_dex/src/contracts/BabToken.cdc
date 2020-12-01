@@ -67,7 +67,7 @@ pub contract BabToken {
 
         
         self.account.save(<-create VaultMinter(), to: /storage/BabMinter)
- 
+        self.account.link<&BabToken.Vault{BabToken.Receiver, BabToken.Balance}>(/public/BabReceiver, target: /storage/BabVault)
         self.account.link<&VaultMinter>(/private/Minter, target: /storage/BabMinter)
     }
 
