@@ -18,6 +18,16 @@ transaction {
             ?? panic("Could not borrow a reference to 0x03's Flow Vault")
     let babVault = lpacc.borrow<&{BabToken.Receiver, BabToken.Provider, BabToken.Balance}>(from: /storage/BabVault)
             ?? panic("Could not borrow a reference to 0x03's BabVault")
+    var lpVaultOptional = lpacc.borrow<&{LPToken.Receiver, LPToken.Provider, LPToken.Balance}>(from: /storage/LPVault)
+            ?? nil
+
+    //   element.save<@LPToken.Vault>(<-vault, to: /storage/LPVault)
+    if(lpVaultOptional == nil){
+        let empty_lpVault <- LPToken.createEmptyVault()
+        lpacc.save<@LPToken.Vault>(<-empty_lpVault, to: /storage/LPVault)
+        lpacc.link<&LPToken.Vault{LPToken.Receiver, LPToken.Balance}>(/public/LPReceiver, target: /storage/LPVault)
+    }  
+
     let lpVault = lpacc.borrow<&{LPToken.Receiver, LPToken.Provider, LPToken.Balance}>(from: /storage/LPVault)
             ?? panic("Could not borrow a reference to 0x03's LPVault")
     
