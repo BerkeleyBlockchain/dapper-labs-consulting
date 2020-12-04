@@ -5,6 +5,7 @@ import LPToken from 0xf3fcd2c1a78f5eee
 pub contract DapperDex {
 
   pub resource interface PoolPublic {
+        pub fun swap(from: @AnyResource, toX: &AnyResource{FlowToken.Receiver}, toY: &AnyResource{BabToken.Receiver})
     pub fun XtoY(from: @FlowToken.Vault, to: &AnyResource{BabToken.Receiver})
     pub fun YtoX(from: @BabToken.Vault, to: &AnyResource{FlowToken.Receiver})
     pub fun price(
@@ -84,6 +85,21 @@ pub contract DapperDex {
       to1.deposit(from: <- self.xVault.withdraw(amount:numXTokens))
       to2.deposit(from: <- self.yVault.withdraw(amount:numYTokens))
     }
+
+     pub fun swap(
+      from: @AnyResource, 
+      toX: &AnyResource{FlowToken.Receiver},
+      toY: &AnyResource{BabToken.Receiver}
+    ) {
+      if let xVault <- from as? @FlowToken.Vault {
+        let yRecieverVault = toY as &AnyResource{BabToken.Receiver}
+        self.XtoY(from: <- xVault, to: yRecieverVault)
+      } else if let yVault <- from as? @BabToken.Vault {
+        let xRecieverVault = toX as &AnyResource{FlowToken.Receiver}
+        self.YtoX(from: <- yVault, to: xRecieverVault)
+      }
+    }
+
 
     pub fun XtoY(
         from: @FlowToken.Vault,
