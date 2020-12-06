@@ -460,9 +460,9 @@ class SwapBox extends Component {
 
       <Col sm={8} >  
       <br/>
-      {/* <div class = "outerDiv">
-        <div class = "innerDiv"> */}
+        {/* <div class = "innerDiv"> */}
         {this.state.page == 0 ?  
+        <div class = "outerDiv">
         <div style = {header} class = "MainBox"> 
           <h1 style = {{fontWeight: '700'}}> Swap </h1>
           
@@ -534,8 +534,10 @@ class SwapBox extends Component {
           }
           </div>
         </div>
+        </div>
         :
         (this.state.page == 1) ?
+        <div class = "outerDiv">
         <div>
           <h1 style = {{fontWeight: '800'}}> Peacock Setup </h1>
           <br/> <br/>
@@ -587,8 +589,10 @@ class SwapBox extends Component {
           </button>
           
         </div>
+        </div>
         :
         (this.state.page == 2) ?
+        <div class = "outerDiv">
         <div> 
 
         <div style = {header} class = "MainBox"> 
@@ -654,8 +658,10 @@ class SwapBox extends Component {
        
 
         </div>
+        </div>
         :
         (this.state.page == 3) ?
+        <div class = "outerDiv">
         <div style = {header} class = "MainBox">
            <h1 style = {{fontWeight: '700'}}> Withdraw Pool </h1>
             <br/>
@@ -683,6 +689,7 @@ class SwapBox extends Component {
           </div>
 
 
+        </div>
         </div>
         :
         null
