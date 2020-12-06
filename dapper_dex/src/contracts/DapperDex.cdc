@@ -5,7 +5,7 @@ import LPToken from 0xf3fcd2c1a78f5eee
 pub contract DapperDex {
 
   pub resource interface PoolPublic {
-        pub fun swap(from: @AnyResource, toX: &AnyResource{FlowToken.Receiver}, toY: &AnyResource{BabToken.Receiver})
+    pub fun swap(from: @AnyResource, toX: &AnyResource{FlowToken.Receiver}, toY: &AnyResource{BabToken.Receiver})
     pub fun XtoY(from: @FlowToken.Vault, to: &AnyResource{BabToken.Receiver})
     pub fun YtoX(from: @BabToken.Vault, to: &AnyResource{FlowToken.Receiver})
     pub fun price(
@@ -15,6 +15,9 @@ pub contract DapperDex {
     ): UFix64 
     pub fun depositLiquidity(from1: @FlowToken.Vault, from2: @BabToken.Vault, to: &AnyResource{LPToken.Receiver}, x_amount:UFix64)
     pub fun withdrawLiquidity(from: @LPToken.Vault, to1:&AnyResource{FlowToken.Receiver}, to2:&AnyResource{BabToken.Receiver}, lp_amount:UFix64)
+    pub fun xVaultSupply(): UFix64 
+    pub fun yVaultSupply(): UFix64 
+    pub fun quotedPrice(xBit: UFix64, swapAmt: UFix64): UFix64
   }
 
   pub resource Pool: PoolPublic {
@@ -166,6 +169,23 @@ pub contract DapperDex {
         //log("Price")
         //log(price)
         return price
+    }
+
+
+    pub fun xVaultSupply(): UFix64  {
+     return UFix64(self.xVault.balance)
+    }
+    
+    pub fun yVaultSupply(): UFix64 {
+     return UFix64(self.yVault.balance)
+    }
+
+    pub fun quotedPrice(xBit: UFix64, swapAmt: UFix64): UFix64 {
+     if (xBit == UFix64(1)) {
+        return self.price(input_amount: swapAmt, input_reserve: self.xVault.balance, output_reserve: self.yVault.balance)
+     } else {
+        return self.price(input_amount: swapAmt, input_reserve: self.yVault.balance, output_reserve: self.xVault.balance)
+     }
     }
         
     destroy() {

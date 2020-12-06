@@ -16,11 +16,11 @@ import CreateEmptyBabVault from './contracts/build/CreateEmptyVault_bab'
 import FundEmptyFlowVault from './contracts/build/FundEmptyVault_flow'
 import FundEmptyBabVault from './contracts/build/FundEmptyVault_bab'
 import CheckFlowBabBalance from './contracts/build/CheckBalance'
-import CreatePeacockDex from './contracts/build/CreateDex'
-import SwapXtoY from './contracts/build/SwapXtoY'
+import CreatePeacockDex from './contracts/build/CreateDex'  
 import DepositLiquidity from './cdcTransactions/DepositLiquidity'
 import WithdrawLiquidity from './cdcTransactions/WithdrawLiquidity'
 import SwapTokens from './cdcTransactions/Swap'
+import getTokenPrices from './cdcScripts/getTokenPrices';
 
 class DappExample extends React.Component {
     constructor() {
@@ -32,19 +32,31 @@ class DappExample extends React.Component {
         depositAmount: null,
         swapAmount: null,
         withdrawAmount: null,
+        quotedPriceAmt: 0
       }
-     
-
+    
       this.sendTransaction = this.sendTransaction.bind(this)
-      this.deployContract = this.deployContract.bind(this)
-      this.sendScript = this.sendScript.bind(this)
+      this.deployContract = this.deployContract.bind(this) 
       this.authenticate = this.authenticate.bind(this)
       this.unauthenticate = this.unauthenticate.bind(this) 
-      this.getAuth = this.getAuth.bind(this)
     }
 
     componentDidMount() {
       this.unauthenticate() 
+    }
+
+    authenticate(){
+      fcl.authenticate().then((response) => {
+        console.log(response)
+        this.setState({account: response.addr}, () => {
+          //this.checkBalance()
+        });
+      })
+    }
+    
+    unauthenticate(){
+      this.setState({account: undefined})
+      fcl.unauthenticate()
     }
 
     depositLiquidity = async () => { 
@@ -97,6 +109,16 @@ class DappExample extends React.Component {
       })
     }
 
+    getQuotedPrice = () => { 
+      this.sendScriptQuotaPrice(getTokenPrices(1,this.state.swapAmount)).then((resolve, reject) => {
+        this.setState({
+          quotedPriceAmt: resolve.OutputPrice,
+        }) 
+      }).catch(err => {
+        console.log(err)
+      })
+    }
+
     createDex = () => {
       this.sendTransaction(CreatePeacockDex, this.state.authUsers).then((resolve, reject) => {
         console.log(resolve)
@@ -126,31 +148,6 @@ class DappExample extends React.Component {
       } catch (error) {
       return error;
       }
-    }
-
-    authenticate(){
-      fcl.authenticate().then((response) => {
-        console.log(response)
-        this.setState({account: response.addr}, () => {
-          //this.checkBalance()
-        });
-      })
-    }
-    
-    unauthenticate(){
-      this.setState({account: undefined})
-      fcl.unauthenticate()
-    }
-
-    sendScript(){
-      this.setState({
-        script: undefined
-      });
-      this.sendScript(script).then((resolve, reject) => {
-        this.setState({
-          script: resolve
-        });
-    })
     }
 
     deployContractCall(contractName) {   
@@ -233,24 +230,23 @@ class DappExample extends React.Component {
       })
     }
 
-    getAuth (){ 
-      this.setState(previousState => ({
-        authUsers: [...previousState.authUsers, fcl.currentUser().authorization]
-    }));
-    console.log(this.state.authUsers)
-    }
-
-
     /**
      * FLOW CORE FUNCTIONS  
      **/
-    sendScript = async (code) => { 
-      console.log(this.state.account)
+    sendScript = async (code) => {  
       return fcl.send([
               fcl.script(code), 
               fcl.args([
                 fcl.arg(this.state.account, t.Address),
               ])
+      ]).then(fcl.decode);
+
+      //return response;
+    };
+
+    sendScriptQuotaPrice = async (code) => {  
+      return fcl.send([
+              fcl.script(code),  
       ]).then(fcl.decode);
 
       //return response;
@@ -359,6 +355,7 @@ class DappExample extends React.Component {
             Get balance 
           </button>
 
+
           <button onClick = {() => this.createDex()}>
             Create Peacock Dex 🦚
           </button>
@@ -390,6 +387,11 @@ class DappExample extends React.Component {
           <button onClick = {() => this.swapTokens("ytox")}>
             SWAP Y TO X
           </button>
+          <button onClick = {() => this.getQuotedPrice()}>
+            Get Quoted Price
+          </button>
+          <br/> 
+          <p> Quoted Price: {this.state.quotedPriceAmt} </p>
 
           <br/>
           <input 
