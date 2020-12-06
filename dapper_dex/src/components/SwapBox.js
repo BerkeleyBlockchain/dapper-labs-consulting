@@ -460,9 +460,11 @@ class SwapBox extends Component {
 
       <Col sm={8} >  
       <br/>
+      <div class = "outerDiv">
+        <div class = "innerDiv">
         {this.state.page == 0 ?  
         <div style = {header} class = "MainBox"> 
-          <h1 style = {{fontWeight: '700'}}> Peacock Swap </h1>
+          <h1 style = {{fontWeight: '700'}}> Swap </h1>
           
           <div style = {{alignSelf: 'center', width: '100%', paddingTop: 20}}>  
             <InputGroup  
@@ -483,6 +485,7 @@ class SwapBox extends Component {
 
             </DropdownButton>
             <FormControl 
+              class = "inputAmount"
               aria-describedby="basic-addon1" 
               style ={{height: 60, borderRadius: 0}} 
               value = {this.state.swapAmount}
@@ -588,7 +591,7 @@ class SwapBox extends Component {
         (this.state.page == 2) ?
         <div> 
 
-        <div style = {header}> 
+        <div style = {header} class = "MainBox"> 
         {/* Always going from X to Y for NOW */}
         <h1 style = {{fontWeight: '700'}}> Peacock Deposit Pool </h1>
         
@@ -645,7 +648,7 @@ class SwapBox extends Component {
       
         <br/>
         <div style = {{display: "flex",justifyContent: 'center'}}>
-          <Button size="lg" variant="dark" style = {{width: '100%', alignSelf: 'center', height: 60}} onClick = {this.depositLiquidity}>Deposit Liquidity</Button> 
+          <button  class = "SubmitButton" onClick = {this.depositLiquidity}>Deposit Liquidity</button> 
         </div>
         </div>
        
@@ -674,7 +677,7 @@ class SwapBox extends Component {
           </InputGroup>
 
           <div style = {{display: "flex",justifyContent: 'center'}}>
-            <Button size="lg" variant="dark" style = {{width: '100%', alignSelf: 'center', height: 60}} onClick = {this.withdrawLiquidity}>Withdraw Liquidity</Button> 
+            <button class = "SubmitButton" onClick = {this.withdrawLiquidity}>Withdraw Liquidity</button> 
           </div>
 
           </div>
@@ -693,6 +696,8 @@ class SwapBox extends Component {
           </pre>
         </div>
         </div>
+        </div>
+      </div>
         
       </Col>
         
