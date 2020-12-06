@@ -19,6 +19,7 @@ import CheckFlowBabBalance from './contracts/build/CheckBalance'
 import CreatePeacockDex from './contracts/build/CreateDex'
 import SwapXtoY from './contracts/build/SwapXtoY'
 import DepositLiquidity from './cdcTransactions/DepositLiquidity'
+import WithdrawLiquidity from './cdcTransactions/WithdrawLiquidity'
 import SwapTokens from './cdcTransactions/Swap'
 
 class DappExample extends React.Component {
@@ -30,6 +31,7 @@ class DappExample extends React.Component {
         flowBalance: 0,
         depositAmount: null,
         swapAmount: null,
+        withdrawAmount: null,
       }
      
 
@@ -49,6 +51,25 @@ class DappExample extends React.Component {
       const authz = fcl.currentUser().authorization
       const response = await fcl.send([
         fcl.transaction(DepositLiquidity(this.state.depositAmount)),
+        fcl.proposer(authz),
+        fcl.payer(authz),
+        fcl.authorizations([
+          authz
+        ]),
+        fcl.limit(1000)
+      ])
+  
+      try {
+      return await fcl.tx(response).onceExecuted()
+      } catch (error) {
+      return error;
+      }
+    }
+
+    withdrawLiquidity = async () => { 
+      const authz = fcl.currentUser().authorization
+      const response = await fcl.send([
+        fcl.transaction(WithdrawLiquidity(this.state.withdrawAmount)),
         fcl.proposer(authz),
         fcl.payer(authz),
         fcl.authorizations([
@@ -353,7 +374,7 @@ class DappExample extends React.Component {
           <button onClick = {() => this.depositLiquidity()}>
             Deposit Liquidity
           </button>
-          
+        
           <br/>
  
 
@@ -369,6 +390,18 @@ class DappExample extends React.Component {
           <button onClick = {() => this.swapTokens("ytox")}>
             SWAP Y TO X
           </button>
+
+          <br/>
+          <input 
+            placeholder = "Enter the Withdraw amount"
+            value = {this.state.withdrawAmount}
+            onChange={(event) => this.setState({withdrawAmount: event.target.value})}
+          />
+          <button onClick = {() => this.withdrawLiquidity()}>
+            Withdraw Liquidity
+          </button>
+
+          <br/> <br/> <br/> <br/>
 
 
         </React.Fragment>
