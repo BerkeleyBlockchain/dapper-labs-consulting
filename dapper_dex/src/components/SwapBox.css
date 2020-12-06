@@ -43,6 +43,11 @@
     transform: translateY(20%);
     /* background: red; */
 }
+
+.outerDiv2 {
+
+    transform: translateY(29%);
+}
 /* .outerDiv {
     display: flex;
     justify-content: center;

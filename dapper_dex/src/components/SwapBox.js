@@ -661,7 +661,7 @@ class SwapBox extends Component {
         </div>
         :
         (this.state.page == 3) ?
-        <div class = "outerDiv">
+        <div class = "outerDiv2">
         <div style = {header} class = "MainBox">
            <h1 style = {{fontWeight: '700'}}> Withdraw Pool </h1>
             <br/>
@@ -690,6 +690,7 @@ class SwapBox extends Component {
 
 
         </div>
+        <br></br>
         </div>
         :
         null
