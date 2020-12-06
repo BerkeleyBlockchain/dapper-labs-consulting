@@ -1,4 +1,4 @@
-export default function(xAmt) {
+export default function(xAmt, yAmt) {
    var dLiquidity = 
    `import FlowToken from 0x179b6b1cb6755e31
       import BabToken from 0x01cf0e2f2f715450
@@ -32,7 +32,7 @@ export default function(xAmt) {
           log("BEFORE")
           log(babVault.balance)
           log(flowVault.balance)
-          dexRef.depositLiquidity(from1: <- flowVault.withdraw(amount: UFix64(xAmount)), 
+          dexRef.depositLiquidity(from1: <- flowVault.withdraw(amount: UFix64(${yAmt})), 
               from2: <- babVault.withdraw(amount: UFix64(xAmount)), 
               to: lpVault, 
               x_amount: xAmount

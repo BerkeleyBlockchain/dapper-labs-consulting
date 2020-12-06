@@ -1,6 +1,7 @@
 // Script1.cdc
 import FlowToken from 0x179b6b1cb6755e31 
 import BabToken from 0x01cf0e2f2f715450
+import LPToken from 0xf3fcd2c1a78f5eee
 
 // This script reads the Vault balances of two accounts.
 pub fun main(address:Address): AnyStruct? {
@@ -21,14 +22,12 @@ pub fun main(address:Address): AnyStruct? {
                             ?? panic("Er 2")
 
     log("GOT ACT1 RECIEVER REF")
-    /*let acct3ReceiverRef = acct1.getCapability(/public/LPReceiver)!
+    let acct3ReceiverRef = getAccount(address).getCapability(/public/LPReceiver)!
                             .borrow<&LPToken.Vault{LPToken.Balance}>()
                             ?? panic("Could not borrow a reference to the acct1 receiver")
-    */ 
+    
     
     log(acct1ReceiverRef.balance)
     // Use optional chaining to read and log balance fields
-    return {"flowBalance": acct1ReceiverRef.balance, "babBalance": acct2ReceiverRef.balance}
-
-    
+    return {"flowBalance": acct1ReceiverRef.balance, "babBalance": acct2ReceiverRef.balance, "lpBalance": acct3ReceiverRef.balance}
 }

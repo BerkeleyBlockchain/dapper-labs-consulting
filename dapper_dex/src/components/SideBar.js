@@ -1,22 +1,31 @@
 import React, { Component } from 'react';
 // import 'react-pro-sidebar/dist/css/styles.css';
 import './custom.scss'
-
-import { ProSidebar, Menu, MenuItem, SidebarContent, SidebarHeader, SidebarFooter} from 'react-pro-sidebar';
+// works with image.png
+import Logo from '../img/image.png'
+import { ProSidebar, Menu, MenuItem, SidebarContent, SidebarHeader, SidebarFooter, SubMenu} from 'react-pro-sidebar';
 import { ArrowDownUp, WalletFill, CircleFill, Search, PersonFill, Wrench} from 'react-bootstrap-icons';
+import {Image} from 'react-bootstrap'
 
-class SwapBox extends Component {
+class SideBar extends Component {
 
     render() {
         return (
             <ProSidebar>
                 <SidebarHeader>
-                    <div
+                <div style={{
+                    padding: '24px', overflow: 'hidden'
+                }}>
+                <Image src = {Logo} fluid style={{height: 27, width: 27}}/>
+                </div>
+
+
+                    {/* <div
                     style={{
                         padding: '24px',
                         textTransform: 'uppercase',
                         fontWeight: 'bold',
-                        fontSize: 14,
+                        fontSize: 14, 
                         letterSpacing: '1px',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -24,7 +33,7 @@ class SwapBox extends Component {
                     }}
                     >
                     Dashboard
-                    </div>
+                    </div> */}
                 </SidebarHeader>
                 
                 
@@ -42,7 +51,14 @@ class SwapBox extends Component {
                         <MenuItem icon={<PersonFill />}>Account</MenuItem>
                         <MenuItem icon={<Search />}>Overview</MenuItem>
                         {/* <ArrowDownUp size={30} color="gray"/> */}
-                        <MenuItem icon={<CircleFill />}>Pool</MenuItem>
+                        <SubMenu
+                            title="Pool"
+                            icon={<CircleFill />}
+                        >
+                            <MenuItem onClick = {this.props.gotoPoolDeposit}>Add Liquidity</MenuItem>
+                            <MenuItem onClick = {this.props.gotoPoolWithdraw}>Withdraw Liquidity</MenuItem>
+                        </SubMenu>
+                        {/* <MenuItem onClick = {this.props.gotoPool} icon={<CircleFill />}>Pool</MenuItem> */}
                         <MenuItem  onClick = {this.props.gotoSwap} icon={<ArrowDownUp />}>Swap</MenuItem>
                         {/* <SubMenu title="Components" icon={<FaHeart />}>
                         <MenuItem>Overview</MenuItem>
@@ -60,8 +76,9 @@ class SwapBox extends Component {
                     {this.props.accountNum == '' ?  <pre></pre> :
                     
                     <Menu> 
-                        <MenuItem onClick = {this.props.unauthenticateWallet}>Bab Balance: <b>{this.props.babBalance}</b> </MenuItem>
-                        <MenuItem onClick = {this.props.unauthenticateWallet}>Flow Balance: <b>{this.props.flowBalance}</b> </MenuItem>
+                        <MenuItem>Bab Balance: <b>{this.props.babBalance}</b> </MenuItem>
+                        <MenuItem>Flow Balance: <b>{this.props.flowBalance}</b> </MenuItem>
+                        <MenuItem>LP Balance: <b>{this.props.lpBalance}</b> </MenuItem>
                         <hr color = "darkgray"/>
                         <MenuItem onClick = {this.props.unauthenticateWallet}>Log Out</MenuItem> 
                     </Menu>
@@ -75,4 +92,4 @@ class SwapBox extends Component {
 }
 
 
-export default SwapBox
+export default SideBar

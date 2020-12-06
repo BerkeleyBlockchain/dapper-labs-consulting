@@ -21,12 +21,17 @@ import DapperDex from '../contracts/build/DapperDex'
 // Transaction imports 
 import CreateEmptyFlowVault from '../contracts/build/CreateEmptyVault_flow'
 import CreateEmptyBabVault from '../contracts/build/CreateEmptyVault_bab'
+import CreateEmptyLpVault from '../contracts/build/CreateEmptyVault_lp'
 import FundEmptyFlowVault from '../contracts/build/FundEmptyVault_flow'
 import FundEmptyBabVault from '../contracts/build/FundEmptyVault_bab'
 import CheckFlowBabBalance from '../contracts/build/CheckBalance'
 import CreatePeacockDex from '../contracts/build/CreateDex'  
 import SwapTokens from '../cdcTransactions/Swap'
 import getTokenPrices from '../cdcScripts/getTokenPrices';
+import getDepositQuoted from '../cdcScripts/getDepositQuoted'
+import DepositLiquidity from '../cdcTransactions/DepositLiquidity'
+import WithdrawLiquidity from '../cdcTransactions/WithdrawLiquidity'
+import './SwapBox.css'
 
 class SwapBox extends Component {
   constructor() {
@@ -38,10 +43,14 @@ class SwapBox extends Component {
       page: 0,
       babBalance: 0,
       flowBalance: 0,
+      lpBalance: 0,
+      depositAmt: null,
+      withdrawAmount: null,
       dropDownValue: "Token Name",
       dropDownValue1: "Token Name",
       swapType: null,
       quotedPriceAmt: null,
+      quotedPriceAmtDeposit: null,
       swapAmount: null,
       swapTypeText: null
     }
@@ -49,7 +58,9 @@ class SwapBox extends Component {
     this.authenticate = this.authenticate.bind(this)
     this.unauthenticate = this.unauthenticate.bind(this)
     this.gotoSetup = this.gotoSetup.bind(this)
-    this.gotoSwap = this.gotoSwap.bind(this)
+    this.gotoSwap = this.gotoSwap.bind(this) 
+    this.gotoPoolWithdraw = this.gotoPoolWithdraw.bind(this)
+    this.gotoPoolDeposit = this.gotoPoolDeposit.bind(this)
   }
 
   componentDidMount () { 
@@ -74,7 +85,8 @@ class SwapBox extends Component {
     fcl.unauthenticate()
     this.setState({
       flowBalance: 0,
-      babBalance: 0
+      babBalance: 0,
+      lpBalance: 0,
     })
   }
 
@@ -84,7 +96,8 @@ class SwapBox extends Component {
       console.log(resolve)
       this.setState({
         flowBalance: resolve.flowBalance,
-        babBalance: resolve.babBalance
+        babBalance: resolve.babBalance,
+        lpBalance: resolve.lpBalance
       });
     }).catch(err => {
       console.log(err)
@@ -101,6 +114,53 @@ class SwapBox extends Component {
     }).catch(err => {
       console.log(err)
     })
+  }
+
+  depositLiquidity = async () => { 
+    const authz = fcl.currentUser().authorization
+    const response = await fcl.send([
+      fcl.transaction(DepositLiquidity(this.state.depositAmt, this.state.quotedPriceAmtDeposit)),
+      fcl.proposer(authz),
+      fcl.payer(authz),
+      fcl.authorizations([
+        authz
+      ]),
+      fcl.limit(1000)
+    ])
+
+    try {
+    return await fcl.tx(response).onceExecuted().then((res) => {
+      this.checkBalance()
+      this.setState({
+        depositAmt: null,
+        quotedPriceAmtDeposit: null
+      })
+    })
+    } catch (error) {
+    return error;
+    }
+  }
+  
+
+  withdrawLiquidity = async () => { 
+    const authz = fcl.currentUser().authorization
+    const response = await fcl.send([
+      fcl.transaction(WithdrawLiquidity(this.state.withdrawAmount)),
+      fcl.proposer(authz),
+      fcl.payer(authz),
+      fcl.authorizations([
+        authz
+      ]),
+      fcl.limit(1000)
+    ])
+
+    try {
+    return await fcl.tx(response).onceExecuted().then((res) => {
+      this.checkBalance()
+    })
+    } catch (error) {
+    return error;
+    }
   }
 
 
@@ -143,6 +203,8 @@ class SwapBox extends Component {
       vName = CreateEmptyFlowVault
     } else if (vaultName === "cvbab") {
       vName = CreateEmptyBabVault
+    } else if (vaultName === "cvlp") {
+      vName = CreateEmptyLpVault
     } else {
       return 0
     }
@@ -197,6 +259,18 @@ class SwapBox extends Component {
       console.log(err)
     })
   }
+
+  getDepositQuotedPrice = () => { 
+    this.sendScriptQuotaPrice(getDepositQuoted(this.state.depositAmt)).then((resolve, reject) => {
+      console.log(resolve)
+      this.setState({
+        quotedPriceAmtDeposit: resolve.DepositQuote,
+      }) 
+    }).catch(err => {
+      console.log(err)
+    })
+  }
+
 
   swapTokens = async() => {
     const authz = fcl.currentUser().authorization
@@ -296,6 +370,14 @@ class SwapBox extends Component {
     })
   }
 
+  onChangeText1(amt) {
+    this.setState({
+      depositAmt: amt
+    }, () => {
+      this.getDepositQuotedPrice()
+    })
+  }
+
   changeValue(text, type) {
     this.setState({
       dropDownValue: text, 
@@ -314,6 +396,7 @@ class SwapBox extends Component {
     })
   }
 
+
   gotoSetup() {
     this.setState({
       page: 1
@@ -323,6 +406,18 @@ class SwapBox extends Component {
   gotoSwap() {
     this.setState({
       page: 0
+    })
+  }
+
+  gotoPoolDeposit () {
+    this.setState({
+      page: 2
+    })
+  }
+
+  gotoPoolWithdraw () {
+    this.setState({
+      page: 3
     })
   }
 
@@ -337,14 +432,14 @@ class SwapBox extends Component {
       alignSelf: 'center', 
       border: '1px solid gray',
       padding: 30,
-      borderRadius: 30, 
+      borderRadius: 30,
   }
   
     return (
       <Container fluid>
         <Row>
       
-      <Col sm={4} style = {{height: "100vh", }}> 
+      <Col sm={4} style = {{height: "100vh",}}> 
         
         <SideBar
           accountNum = {this.state.account} 
@@ -352,8 +447,11 @@ class SwapBox extends Component {
           unauthenticateWallet = {this.unauthenticate}
           gotoSetup = {this.gotoSetup}
           gotoSwap = {this.gotoSwap}
+          gotoPoolDeposit = {this.gotoPoolDeposit}
+          gotoPoolWithdraw = {this.gotoPoolWithdraw}
           babBalance = {this.state.babBalance}
           flowBalance = {this.state.flowBalance}
+          lpBalance = {this.state.lpBalance}
         />  
 
       </Col>
@@ -363,74 +461,74 @@ class SwapBox extends Component {
       <Col sm={8} >  
       <br/>
         {this.state.page == 0 ?  
-        <div style = {header}> 
-        <h1 style = {{fontWeight: '700'}}> Peacock Swap </h1>
-        
-        <div style = {{alignSelf: 'center', width: '100%', paddingTop: 20}}>  
-          <InputGroup  
-            className="mb-3" 
-            style ={{height: 60, borderRadius: 0}} 
-          >
-
-          <DropdownButton
-            as={InputGroup.Prepend}
-            variant="outline-secondary"
-            title={this.state.dropDownValue}
-            id="input-group-dropdown-1"
-            onChange = {this.handleChange}
-          > 
+        <div style = {header} class = "MainBox"> 
+          <h1 style = {{fontWeight: '700'}}> Peacock Swap </h1>
           
-            <Dropdown.Item as="button"><div onClick={(e) => this.changeValue(e.target.textContent, 0)}>Y FLOW</div></Dropdown.Item>
-            <Dropdown.Item as="button"><div onClick={(e) => this.changeValue(e.target.textContent, 1)}>X BAB</div></Dropdown.Item>
+          <div style = {{alignSelf: 'center', width: '100%', paddingTop: 20}}>  
+            <InputGroup  
+              className="mb-3" 
+              style ={{height: 60, borderRadius: 0}} 
+            >
 
-          </DropdownButton>
-          <FormControl 
-            aria-describedby="basic-addon1" 
-            style ={{height: 60, borderRadius: 0}} 
-            value = {this.state.swapAmount}
-            placeholder = "Enter the swap Amount"
-            onChange={(e) => this.onChangeText(e.target.value)}
-          />
-          </InputGroup>
+            <DropdownButton
+              as={InputGroup.Prepend}
+              variant="outline-secondary"
+              title={this.state.dropDownValue}
+              id="input-group-dropdown-1"
+              onChange = {this.handleChange}
+            > 
+            
+              <Dropdown.Item as="button"><div onClick={(e) => this.changeValue(e.target.textContent, 0)}>Y FLOW</div></Dropdown.Item>
+              <Dropdown.Item as="button"><div onClick={(e) => this.changeValue(e.target.textContent, 1)}>X BAB</div></Dropdown.Item>
 
-        </div>
-      
-      <div style = {{display: "flex",justifyContent: 'center'}}> 
-        <ArrowDownUp size={30} color="gray"/>
-      </div>
-      <br/>
-
-      <div style = {{alignSelf: 'center', width: '100%'}}>  
-        <InputGroup  className="mb-3" style ={{height: 60, borderRadius: 0}}>
-          <DropdownButton
-            as={InputGroup.Prepend}
-            variant="outline-secondary"
-            title={this.state.dropDownValue1}
-            id="input-group-dropdown-1"
-            onChange = {this.handleChange}
-          >
-            <Dropdown.Item as="button"><div onClick={(e) => this.changeValue1(e.target.textContent, 0)}>Y FLOW</div></Dropdown.Item>
-            <Dropdown.Item as="button"><div onClick={(e) => this.changeValue1(e.target.textContent, 1)}>X BAB</div></Dropdown.Item>
-
-          </DropdownButton>
-          <FormControl 
-            disabled 
-            aria-describedby="basic-addon1" 
-            style ={{height: 60, borderRadius: 0}} 
-            value = {this.state.quotedPriceAmt}
-            placeholder = "Quoted Amount"
+            </DropdownButton>
+            <FormControl 
+              aria-describedby="basic-addon1" 
+              style ={{height: 60, borderRadius: 0}} 
+              value = {this.state.swapAmount}
+              placeholder = "Enter the swap Amount"
+              onChange={(e) => this.onChangeText(e.target.value)}
             />
+            </InputGroup>
 
-        </InputGroup>
-      </div>
+          </div>
       
-        <br/>
-        <div style = {{display: "flex",justifyContent: 'center'}}>
-          {this.state.account != '' ?
-          <Button size="lg" variant="dark" style = {{width: '100%', alignSelf: 'center', height: 60}} onClick = {this.swapTokens}>Swap</Button>
-          :
-          <Button size="lg" variant="dark" style = {{width: '100%', alignSelf: 'center', height: 60}} onClick = {this.authenticate}>Connect to Wallet</Button>
-        }
+          <div style = {{display: "flex",justifyContent: 'center'}}> 
+            <ArrowDownUp size={30} color="gray"/>
+          </div>
+          <br/>
+
+          <div style = {{alignSelf: 'center', width: '100%'}}>  
+            <InputGroup  className="mb-3" style ={{height: 60, borderRadius: 0}}>
+              <DropdownButton
+                as={InputGroup.Prepend}
+                variant="outline-secondary"
+                title={this.state.dropDownValue1}
+                id="input-group-dropdown-1"
+                onChange = {this.handleChange}
+              >
+                <Dropdown.Item as="button"><div onClick={(e) => this.changeValue1(e.target.textContent, 0)}>Y FLOW</div></Dropdown.Item>
+                <Dropdown.Item as="button"><div onClick={(e) => this.changeValue1(e.target.textContent, 1)}>X BAB</div></Dropdown.Item>
+
+              </DropdownButton>
+              <FormControl 
+                disabled 
+                aria-describedby="basic-addon1" 
+                style ={{height: 60, borderRadius: 0}} 
+                value = {this.state.quotedPriceAmt}
+                placeholder = "Quoted Amount"
+                />
+
+            </InputGroup>
+          </div>
+      
+          <br/>
+          <div style = {{display: "flex",justifyContent: 'center'}}>
+            {this.state.account != '' ?
+            <button class = "SubmitButton" onClick = {this.swapTokens}>Swap</button>
+            :
+            <button  class = "SubmitButton" onClick = {this.authenticate}>Connect to Wallet</button>
+          }
           </div>
         </div>
         :
@@ -464,6 +562,11 @@ class SwapBox extends Component {
             Create Empty Vault bab
           </button>
           
+          <button onClick={() => this.createVaultTransaction('cvlp')} >
+            Create Empty Vault LP
+          </button>
+          
+
           <hr/>
 
           <button onClick={() => this.fundVaultTransaction('ftflow')} >
@@ -482,9 +585,106 @@ class SwapBox extends Component {
           
         </div>
         :
+        (this.state.page == 2) ?
+        <div> 
+
+        <div style = {header}> 
+        {/* Always going from X to Y for NOW */}
+        <h1 style = {{fontWeight: '700'}}> Peacock Deposit Pool </h1>
+        
+        <div style = {{alignSelf: 'center', width: '100%', paddingTop: 20}}>  
+          <InputGroup  
+            className="mb-3" 
+            style ={{height: 60, borderRadius: 0}} 
+          >
+
+          <DropdownButton
+            as={InputGroup.Prepend}
+            variant="outline-secondary"
+            title="BAB" 
+            onChange = {this.handleChange}
+          >  
+          </DropdownButton>
+          
+          <FormControl 
+            aria-describedby="basic-addon1" 
+            style ={{height: 60, borderRadius: 0}} 
+            value = {this.state.depositAmt}
+            placeholder = "Enter the Deposit Amount"
+            onChange={(e) => this.onChangeText1(e.target.value)}
+          />
+          </InputGroup>
+
+        </div>
+      
+      <div style = {{display: "flex",justifyContent: 'center'}}> 
+        <ArrowDownUp size={30} color="gray"/>
+      </div>
+      <br/>
+
+      <div style = {{alignSelf: 'center', width: '100%'}}>  
+        <InputGroup  className="mb-3" style ={{height: 60, borderRadius: 0}}>
+          <DropdownButton
+            as={InputGroup.Prepend}
+            variant="outline-secondary"
+            title= "FLOW"
+            id="input-group-dropdown-1"
+            onChange = {this.handleChange}
+          > 
+          </DropdownButton>
+          <FormControl 
+            disabled 
+            aria-describedby="basic-addon1" 
+            style ={{height: 60, borderRadius: 0}} 
+            value = {this.state.quotedPriceAmtDeposit}
+            placeholder = "Quoted Amount"
+            />
+
+        </InputGroup>
+      </div>
+      
+        <br/>
+        <div style = {{display: "flex",justifyContent: 'center'}}>
+          <Button size="lg" variant="dark" style = {{width: '100%', alignSelf: 'center', height: 60}} onClick = {this.depositLiquidity}>Deposit Liquidity</Button> 
+        </div>
+        </div>
+       
+
+        </div>
+        :
+        (this.state.page == 3) ?
+        <div>
+           <h1 style = {{fontWeight: '700'}}> Peacock Withdraw Pool </h1>
+            <br/>
+           <div style = {{width: '60%'}}>
+           <InputGroup 
+            className="mb-3"
+            style ={{height: 60, borderRadius: 0}} 
+           >
+            <InputGroup.Prepend>
+              <InputGroup.Text id="basic-addon1">LP AMOUNT</InputGroup.Text>
+            </InputGroup.Prepend>
+            <FormControl
+              placeholder="Enter LP Token Amount" 
+              aria-describedby="basic-addon1"
+              value = {this.state.withdrawAmount}
+              style = {{height: 60,  borderRadius: 0}}
+              onChange={(e) => this.setState({withdrawAmount: e.target.value })}
+            />
+          </InputGroup>
+
+          <div style = {{display: "flex",justifyContent: 'center'}}>
+            <Button size="lg" variant="dark" style = {{width: '100%', alignSelf: 'center', height: 60}} onClick = {this.withdrawLiquidity}>Withdraw Liquidity</Button> 
+          </div>
+
+          </div>
+
+
+        </div>
+        :
         null
         }
-
+      
       <div style = {{display: "flex",justifyContent: 'center', width: '70%', marginTop: 100}}>  
         <div style = {{width: '100%'}}> 
         <h5> Output </h5>

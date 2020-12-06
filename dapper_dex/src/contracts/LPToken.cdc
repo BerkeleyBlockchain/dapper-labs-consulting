@@ -68,7 +68,7 @@ pub contract LPToken {
 
         // Create a new MintAndBurn resource and store it in account storage
         self.account.save(<-create VaultMinter(), to: /storage/LPMinter)
-
+        self.account.link<&LPToken.Vault{LPToken.Receiver, LPToken.Balance}>(/public/LPReceiver, target: /storage/LPVault)
         self.account.link<&VaultMinter>(/private/Minter, target: /storage/LPMinter)
     }
 }

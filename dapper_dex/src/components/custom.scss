@@ -1,6 +1,12 @@
-$sidebar-bg-color: rgba(0,0,0,0);
+$sidebar-bg-color: rgba(255,255,255,0.2);
 
 $highlight-color: #ffffff;
-$sidebar-color: #808080;
+$sidebar-color: #454D54;
+$submenu-bg-color: rgba(255,255,255,0.2);
+$submenu-bg-color-collapsed: rgba(255,255,255,0.2);
+$icon-bg-color:  rgba(255,255,255,0.0);
 
 @import '~react-pro-sidebar/dist/scss/styles.scss';
+
+/* Overview */
+
