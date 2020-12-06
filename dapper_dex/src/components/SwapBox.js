@@ -460,8 +460,8 @@ class SwapBox extends Component {
 
       <Col sm={8} >  
       <br/>
-      <div class = "outerDiv">
-        <div class = "innerDiv">
+      {/* <div class = "outerDiv">
+        <div class = "innerDiv"> */}
         {this.state.page == 0 ?  
         <div style = {header} class = "MainBox"> 
           <h1 style = {{fontWeight: '700'}}> Swap </h1>
@@ -593,7 +593,7 @@ class SwapBox extends Component {
 
         <div style = {header} class = "MainBox"> 
         {/* Always going from X to Y for NOW */}
-        <h1 style = {{fontWeight: '700'}}> Peacock Deposit Pool </h1>
+        <h1 style = {{fontWeight: '700'}}> Deposit Pool </h1>
         
         <div style = {{alignSelf: 'center', width: '100%', paddingTop: 20}}>  
           <InputGroup  
@@ -656,10 +656,10 @@ class SwapBox extends Component {
         </div>
         :
         (this.state.page == 3) ?
-        <div>
-           <h1 style = {{fontWeight: '700'}}> Peacock Withdraw Pool </h1>
+        <div style = {header} class = "MainBox">
+           <h1 style = {{fontWeight: '700'}}> Withdraw Pool </h1>
             <br/>
-           <div style = {{width: '60%'}}>
+           <div style = {{width: '100%'}}>
            <InputGroup 
             className="mb-3"
             style ={{height: 60, borderRadius: 0}} 
@@ -695,8 +695,8 @@ class SwapBox extends Component {
             {JSON.stringify(this.state.output, null, 2)}
           </pre>
         </div>
-        </div>
-        </div>
+        {/* </div>
+        </div> */}
       </div>
         
       </Col>
