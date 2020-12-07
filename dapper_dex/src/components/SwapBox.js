@@ -6,7 +6,8 @@ import {DropdownButton,
       Button,
       Container,
       Row,
-      Col
+      Col,
+      Image
     } from 'react-bootstrap'
 import { ArrowDownUp } from 'react-bootstrap-icons';
 import SideBar from './SideBar'
@@ -119,7 +120,7 @@ class SwapBox extends Component {
   depositLiquidity = async () => { 
     const authz = fcl.currentUser().authorization
     const response = await fcl.send([
-      fcl.transaction(DepositLiquidity(this.state.depositAmt, this.state.quotedPriceAmtDeposit)),
+      fcl.transaction(DepositLiquidity(parseFloat(this.state.depositAmt).toFixed(2), parseFloat(this.state.quotedPriceAmtDeposit).toFixed(2))),
       fcl.proposer(authz),
       fcl.payer(authz),
       fcl.authorizations([
@@ -428,9 +429,9 @@ class SwapBox extends Component {
   var header={
       color:"#000",
       fontWeight:"550",
-      width: '65%',
+      width: '55%',
       alignSelf: 'center', 
-      border: '1px solid gray',
+      border: '1px solid #eee',
       padding: 30,
       borderRadius: 30,
   }
@@ -480,17 +481,18 @@ class SwapBox extends Component {
               onChange = {this.handleChange}
             > 
             
-              <Dropdown.Item as="button"><div onClick={(e) => this.changeValue(e.target.textContent, 0)}>Y FLOW</div></Dropdown.Item>
-              <Dropdown.Item as="button"><div onClick={(e) => this.changeValue(e.target.textContent, 1)}>X BAB</div></Dropdown.Item>
+              <Dropdown.Item as="button"><div onClick={(e) => this.changeValue(e.target.textContent, 0)}> <Image src = "https://pbs.twimg.com/profile_images/1307035887000342529/OPfvNrms_400x400.jpg" style = {{height: 20, width: 20}}/>  FLOW</div></Dropdown.Item>
+              <Dropdown.Item as="button"><div onClick={(e) => this.changeValue(e.target.textContent, 1)}><Image src = "https://pbs.twimg.com/profile_images/875997465559711746/Pu4vQ9Gh.jpg" style ={{height: 20, width: 20}}/> BAB</div></Dropdown.Item>
 
             </DropdownButton>
             <FormControl 
               class = "inputAmount"
               aria-describedby="basic-addon1" 
-              style ={{height: 60, borderRadius: 0}} 
+              style ={{height: 60, borderRadius: 0, textAlign: 'right', fontSize: 20, fontWeight: 500}} 
               value = {this.state.swapAmount}
               placeholder = "Enter the swap Amount"
               onChange={(e) => this.onChangeText(e.target.value)}
+
             />
             </InputGroup>
 
@@ -510,14 +512,14 @@ class SwapBox extends Component {
                 id="input-group-dropdown-1"
                 onChange = {this.handleChange}
               >
-                <Dropdown.Item as="button"><div onClick={(e) => this.changeValue1(e.target.textContent, 0)}>Y FLOW</div></Dropdown.Item>
-                <Dropdown.Item as="button"><div onClick={(e) => this.changeValue1(e.target.textContent, 1)}>X BAB</div></Dropdown.Item>
+                <Dropdown.Item as="button"><div onClick={(e) => this.changeValue1(e.target.textContent, 0)}> <Image src = "https://pbs.twimg.com/profile_images/1307035887000342529/OPfvNrms_400x400.jpg" style = {{height: 20, width: 20}}/> FLOW</div></Dropdown.Item>
+                <Dropdown.Item as="button"><div onClick={(e) => this.changeValue1(e.target.textContent, 1)}> <Image src = "https://pbs.twimg.com/profile_images/875997465559711746/Pu4vQ9Gh.jpg" style ={{height: 20, width: 20}}/> BAB</div></Dropdown.Item>
 
               </DropdownButton>
               <FormControl 
                 disabled 
                 aria-describedby="basic-addon1" 
-                style ={{height: 60, borderRadius: 0}} 
+                style ={{height: 60, borderRadius: 0,textAlign: 'right', fontSize: 20, fontWeight: 500}} 
                 value = {this.state.quotedPriceAmt}
                 placeholder = "Quoted Amount"
                 />
@@ -589,6 +591,18 @@ class SwapBox extends Component {
           </button>
           
         </div>
+          <br/>
+        <div style = {{display: "flex",justifyContent: 'center', width: '70%',}}>  
+        <div style = {{width: '100%'}}> 
+        <h5> Output </h5>
+          <pre  style = {{height: 200, border: '1px solid #287EC7', overflow: 'auto',  borderRadius: 1}}>
+            {JSON.stringify(this.state.output, null, 2)}
+          </pre>
+        </div>
+        {/* </div>
+        </div> */}
+      </div>
+
         </div>
         :
         (this.state.page == 2) ?
@@ -603,8 +617,7 @@ class SwapBox extends Component {
           <InputGroup  
             className="mb-3" 
             style ={{height: 60, borderRadius: 0}} 
-          >
-
+          > 
           <DropdownButton
             as={InputGroup.Prepend}
             variant="outline-secondary"
@@ -615,7 +628,7 @@ class SwapBox extends Component {
           
           <FormControl 
             aria-describedby="basic-addon1" 
-            style ={{height: 60, borderRadius: 0}} 
+            style ={{height: 60, borderRadius: 0, textAlign: 'right', fontSize: 20, fontWeight: 500}} 
             value = {this.state.depositAmt}
             placeholder = "Enter the Deposit Amount"
             onChange={(e) => this.onChangeText1(e.target.value)}
@@ -642,7 +655,7 @@ class SwapBox extends Component {
           <FormControl 
             disabled 
             aria-describedby="basic-addon1" 
-            style ={{height: 60, borderRadius: 0}} 
+            style ={{height: 60, borderRadius: 0, textAlign: 'right', fontSize: 20, fontWeight: 500}} 
             value = {this.state.quotedPriceAmtDeposit}
             placeholder = "Quoted Amount"
             />
@@ -668,7 +681,7 @@ class SwapBox extends Component {
            <div style = {{width: '100%'}}>
            <InputGroup 
             className="mb-3"
-            style ={{height: 60, borderRadius: 0}} 
+            style ={{height: 60, borderRadius: 0, }} 
            >
             <InputGroup.Prepend>
               <InputGroup.Text id="basic-addon1">LP AMOUNT</InputGroup.Text>
@@ -677,7 +690,7 @@ class SwapBox extends Component {
               placeholder="Enter LP Token Amount" 
               aria-describedby="basic-addon1"
               value = {this.state.withdrawAmount}
-              style = {{height: 60,  borderRadius: 0}}
+              style = {{height: 60,  borderRadius: 0, textAlign: 'right', fontSize: 20, fontWeight: 500}}
               onChange={(e) => this.setState({withdrawAmount: e.target.value })}
             />
           </InputGroup>
@@ -695,17 +708,6 @@ class SwapBox extends Component {
         :
         null
         }
-      
-      <div style = {{display: "flex",justifyContent: 'center', width: '70%', marginTop: 100}}>  
-        <div style = {{width: '100%'}}> 
-        <h5> Output </h5>
-          <pre  style = {{height: 200, border: '1px solid #287EC7', overflow: 'auto',  borderRadius: 1}}>
-            {JSON.stringify(this.state.output, null, 2)}
-          </pre>
-        </div>
-        {/* </div>
-        </div> */}
-      </div>
         
       </Col>
         

@@ -14,9 +14,12 @@ class SideBar extends Component {
             <ProSidebar>
                 <SidebarHeader>
                 <div style={{
-                    padding: '24px', overflow: 'hidden'
+                    padding: '15px', overflow: 'hidden'
                 }}>
-                <Image src = {Logo} fluid style={{height: 27, width: 27}}/>
+                <div>  
+                    <Image src = {Logo} fluid style={{height: 30, width: 30, marginBottom: 5}}/> &nbsp; 
+                    <span style = {{fontWeight: 500, fontSize: 20,}}> Peacock Finance </span>
+                </div>
                 </div>
 
 
@@ -74,7 +77,7 @@ class SideBar extends Component {
                     }}
                     > */}
                     {this.props.accountNum == '' ?  <pre></pre> :
-                    
+                     
                     <Menu> 
                         <MenuItem>Bab Balance: <b>{this.props.babBalance}</b> </MenuItem>
                         <MenuItem>Flow Balance: <b>{this.props.flowBalance}</b> </MenuItem>
@@ -82,6 +85,7 @@ class SideBar extends Component {
                         <hr color = "darkgray"/>
                         <MenuItem onClick = {this.props.unauthenticateWallet}>Log Out</MenuItem> 
                     </Menu>
+                   
                      
                     }
                     {/* </div> */}

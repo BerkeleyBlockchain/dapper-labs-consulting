@@ -35,7 +35,7 @@ export default function(xAmt, yAmt) {
           dexRef.depositLiquidity(from1: <- flowVault.withdraw(amount: UFix64(${yAmt})), 
               from2: <- babVault.withdraw(amount: UFix64(xAmount)), 
               to: lpVault, 
-              x_amount: xAmount
+              x_amount: ${yAmt}
           )
           log("AFTER")
           log(babVault.balance)

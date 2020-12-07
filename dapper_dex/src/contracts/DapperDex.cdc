@@ -50,7 +50,7 @@ pub contract DapperDex {
         to: &AnyResource{LPToken.Receiver}, 
         x_amount:UFix64
     ) {
-
+      
       assert(x_amount <= from1.balance, message: "Intended x amount is greater than X vault Balance")
 
       let ratio = self.yVault.balance / self.xVault.balance
