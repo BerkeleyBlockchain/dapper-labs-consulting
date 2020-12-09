@@ -34,10 +34,27 @@ import DepositLiquidity from '../cdcTransactions/DepositLiquidity'
 import WithdrawLiquidity from '../cdcTransactions/WithdrawLiquidity'
 import './SwapBox.css'
 
+
+const TokenList = [
+  {
+    "id": 1,
+    "title":"BAB",
+    "img": "https://pbs.twimg.com/profile_images/875997465559711746/Pu4vQ9Gh.jpg", 
+  },
+ {  
+   "id": 2, 
+    "img": "https://pbs.twimg.com/profile_images/1307035887000342529/OPfvNrms_400x400.jpg",
+    "title": "FLOW", 
+  },
+
+  
+]
+
 class SwapBox extends Component {
   constructor() {
     super();
     this.state = {
+
       account: '',
       contract: null,
       output: null,
@@ -47,8 +64,8 @@ class SwapBox extends Component {
       lpBalance: 0,
       depositAmt: null,
       withdrawAmount: null,
-      dropDownValue: "Token Name",
-      dropDownValue1: "Token Name",
+      dropDownValue: "Select a Token",
+      dropDownValue1: "Select a Token", 
       swapType: null,
       quotedPriceAmt: null,
       quotedPriceAmtDeposit: null,
@@ -65,6 +82,7 @@ class SwapBox extends Component {
   }
 
   componentDidMount () { 
+    console.log(TokenList)
     this.unauthenticate()
   }
 
@@ -119,8 +137,11 @@ class SwapBox extends Component {
 
   depositLiquidity = async () => { 
     const authz = fcl.currentUser().authorization
+    var flowDepAmt = Math.ceil(parseFloat(this.state.depositAmt) * 100) / 100
+    var babDepAmt = Math.ceil(parseFloat(this.state.quotedPriceAmtDeposit) * 100) / 100
+
     const response = await fcl.send([
-      fcl.transaction(DepositLiquidity(parseFloat(this.state.depositAmt).toFixed(2), parseFloat(this.state.quotedPriceAmtDeposit).toFixed(2))),
+      fcl.transaction(DepositLiquidity(flowDepAmt, babDepAmt)),
       fcl.proposer(authz),
       fcl.payer(authz),
       fcl.authorizations([
@@ -132,10 +153,6 @@ class SwapBox extends Component {
     try {
     return await fcl.tx(response).onceExecuted().then((res) => {
       this.checkBalance()
-      this.setState({
-        depositAmt: null,
-        quotedPriceAmtDeposit: null
-      })
     })
     } catch (error) {
     return error;
@@ -252,6 +269,7 @@ class SwapBox extends Component {
 
 
   getQuotedPrice = (type) => { 
+
     this.sendScriptQuotaPrice(getTokenPrices(type,this.state.swapAmount)).then((resolve, reject) => {
       this.setState({
         quotedPriceAmt: resolve.OutputPrice,
@@ -273,10 +291,25 @@ class SwapBox extends Component {
   }
 
 
-  swapTokens = async() => {
+  swapTokens = async() => { 
+    var testSwap; 
+    if(this.state.dropDownValue.trim() === "FLOW") {
+      // this.setState({
+      //   swapType: 0
+      // }) 
+      testSwap = 0
+    }  else { 
+      // this.setState({
+      //   swapType: 1 
+      // })
+      testSwap = 1
+    }
+
+    console.log("TTEST SWAP", testSwap)
+ 
     const authz = fcl.currentUser().authorization
     const response = await fcl.send([ 
-      fcl.transaction(SwapTokens(this.state.swapAmount, this.state.swapType)),
+      fcl.transaction(SwapTokens(this.state.swapAmount, testSwap)),
       fcl.proposer(authz),
       fcl.payer(authz),
       fcl.authorizations([
@@ -295,7 +328,20 @@ class SwapBox extends Component {
     })
     } catch (error) {
     return error;
-    }
+    } 
+  }
+
+  flipTokens = () => {
+    this.setState(prevState => {
+      return {
+          dropDownValue1: prevState.dropDownValue,
+          dropDownValue: prevState.dropDownValue1,
+          swapAmount: prevState.quotedPriceAmt,
+          quotedPriceAmt: prevState.swapAmount
+      }
+    }, () => {
+      this.getQuotedPrice(this.state.swapType)
+    } )
   }
 
   /**
@@ -363,7 +409,8 @@ class SwapBox extends Component {
 
   onChangeText(text) {
     this.setState({
-      swapAmount: text
+      swapAmount: text,
+      swapType: this.state.dropDownValue.trim() == "FLOW" ? 0 : 1,
     }, () => {
       if (this.state.dropDownValue1 != "Token Name") {
         this.getQuotedPrice(this.state.swapType)
@@ -379,20 +426,20 @@ class SwapBox extends Component {
     })
   }
 
-  changeValue(text, type) {
+  changeValue(type, item) {
     this.setState({
-      dropDownValue: text, 
+      dropDownValue: item.title, 
       swapType: type, 
-    }, () => {
+    }, () => {        
       this.getQuotedPrice(type)
     })
   }
 
-  changeValue1(text, type) {
+  changeValue1(type, item) {
     this.setState({
-      dropDownValue1: text,
+      dropDownValue1: item.title,
       swapType: type
-    }, () => {
+    }, () => { 
       this.getQuotedPrice(type)
     })
   }
@@ -425,13 +472,30 @@ class SwapBox extends Component {
 
 
   render() {
- 
+  // X = FLOW Y = BAB
+  // SwapType == 0 means Flow to BAB which means XToY
+  // SWAPType == 1  means BAB to flow which means ytox
+
+  //const result = TokenList.filter((text) => text.title !== item.title); 
+  
+  const nTokenList = TokenList.filter((text) => text.title !== this.state.dropDownValue  && text.title !== this.state.dropDownValue1)
+   
+  const TokensList1 = nTokenList.map((item) => 
+    <Dropdown.Item as="button"><div onClick={() => this.changeValue(0, item)}> <Image src = {item.img} style = {{height: 20, width: 20}}/>{item.title}</div></Dropdown.Item> 
+  );
+  
+  const TokensList2 = nTokenList.map((item) =>
+    <Dropdown.Item as="button"><div onClick={() => this.changeValue1(1, item)}> <Image src = {item.img} style = {{height: 20, width: 20}}/>{item.title}</div></Dropdown.Item> 
+  );
+
+
+
   var header={
       color:"#000",
       fontWeight:"550",
       width: '55%',
       alignSelf: 'center', 
-      border: '1px solid #eee',
+      border: '1px solid #eee', 
       padding: 30,
       borderRadius: 30,
   }
@@ -480,11 +544,9 @@ class SwapBox extends Component {
               id="input-group-dropdown-1"
               onChange = {this.handleChange}
             > 
-            
-              <Dropdown.Item as="button"><div onClick={(e) => this.changeValue(e.target.textContent, 0)}> <Image src = "https://pbs.twimg.com/profile_images/1307035887000342529/OPfvNrms_400x400.jpg" style = {{height: 20, width: 20}}/>  FLOW</div></Dropdown.Item>
-              <Dropdown.Item as="button"><div onClick={(e) => this.changeValue(e.target.textContent, 1)}><Image src = "https://pbs.twimg.com/profile_images/875997465559711746/Pu4vQ9Gh.jpg" style ={{height: 20, width: 20}}/> BAB</div></Dropdown.Item>
-
+            {TokensList1}
             </DropdownButton>
+            
             <FormControl 
               class = "inputAmount"
               aria-describedby="basic-addon1" 
@@ -499,7 +561,7 @@ class SwapBox extends Component {
           </div>
       
           <div style = {{display: "flex",justifyContent: 'center'}}> 
-            <ArrowDownUp size={30} color="gray"/>
+            <ArrowDownUp size={30} color="gray" onClick = {() => this.flipTokens()}/>
           </div>
           <br/>
 
@@ -512,8 +574,7 @@ class SwapBox extends Component {
                 id="input-group-dropdown-1"
                 onChange = {this.handleChange}
               >
-                <Dropdown.Item as="button"><div onClick={(e) => this.changeValue1(e.target.textContent, 0)}> <Image src = "https://pbs.twimg.com/profile_images/1307035887000342529/OPfvNrms_400x400.jpg" style = {{height: 20, width: 20}}/> FLOW</div></Dropdown.Item>
-                <Dropdown.Item as="button"><div onClick={(e) => this.changeValue1(e.target.textContent, 1)}> <Image src = "https://pbs.twimg.com/profile_images/875997465559711746/Pu4vQ9Gh.jpg" style ={{height: 20, width: 20}}/> BAB</div></Dropdown.Item>
+                {TokensList2}
 
               </DropdownButton>
               <FormControl 
@@ -621,7 +682,7 @@ class SwapBox extends Component {
           <DropdownButton
             as={InputGroup.Prepend}
             variant="outline-secondary"
-            title="BAB" 
+            title="FLOW" 
             onChange = {this.handleChange}
           >  
           </DropdownButton>
@@ -647,7 +708,7 @@ class SwapBox extends Component {
           <DropdownButton
             as={InputGroup.Prepend}
             variant="outline-secondary"
-            title= "FLOW"
+            title= "BAB"
             id="input-group-dropdown-1"
             onChange = {this.handleChange}
           > 

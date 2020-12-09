@@ -22,16 +22,16 @@ export default function(xAmt, swapType) {
                  
                 if(${swapType} == 1) { 
                     dexRef.swap(
+                        from: <- babVault.withdraw(amount: UFix64(${xAmt})),
+                        toX: flowVault,
+                        toY: babVault
+                    ) 
+                    } else{
+                    dexRef.swap(
                         from: <- flowVault.withdraw(amount: UFix64(${xAmt})),
                         toX: flowVault,
                         toY: babVault
                     )  
-                    } else{
-                    dexRef.swap(
-                        from: <- babVault.withdraw(amount: UFix64(${xAmt})),
-                        toX: flowVault,
-                        toY: babVault
-                    )
                     }
                 }
             }`

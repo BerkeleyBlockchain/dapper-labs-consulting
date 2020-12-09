@@ -1,4 +1,5 @@
-export default function(xAmt, yAmt) {
+export default function(flowAmt, babAmt) {
+  console.log("FROM DEPOSITLIQUIDITY", flowAmt, babAmt)
    var dLiquidity = 
    `import FlowToken from 0x179b6b1cb6755e31
       import BabToken from 0x01cf0e2f2f715450
@@ -7,8 +8,7 @@ export default function(xAmt, yAmt) {
       
       transaction {
         prepare(acct: AuthAccount) { 
-          let LPAccount = getAccount(0xf3fcd2c1a78f5eee)
-          var xAmount = UFix64(${xAmt})
+          let LPAccount = getAccount(0xf3fcd2c1a78f5eee) 
           let dexCap = LPAccount.getCapability<&DapperDex.Pool{DapperDex.PoolPublic}>(/public/DexPool)
           let dexRef = dexCap!.borrow()!
       
@@ -32,10 +32,10 @@ export default function(xAmt, yAmt) {
           log("BEFORE")
           log(babVault.balance)
           log(flowVault.balance)
-          dexRef.depositLiquidity(from1: <- flowVault.withdraw(amount: UFix64(${yAmt})), 
-              from2: <- babVault.withdraw(amount: UFix64(xAmount)), 
+          dexRef.depositLiquidity(from1: <- flowVault.withdraw(amount: UFix64(${flowAmt})), 
+              from2: <- babVault.withdraw(amount: UFix64(${babAmt})), 
               to: lpVault, 
-              x_amount: ${yAmt}
+              x_amount: UFix64(${flowAmt})
           )
           log("AFTER")
           log(babVault.balance)

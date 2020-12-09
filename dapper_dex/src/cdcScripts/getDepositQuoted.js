@@ -1,4 +1,4 @@
-export default function(xamt) {
+export default function(flowAmt) {
     var returnDeposit = 
     `
 import FlowToken from 0x179b6b1cb6755e31 
@@ -13,8 +13,8 @@ pub fun main(): AnyStruct? {
     let dexCap = LPAccount.getCapability<&DapperDex.Pool{DapperDex.PoolPublic}>(/public/DexPool)
     let dexRef = dexCap!.borrow()!
 
-    let ratio = dexRef.xVaultSupply() / dexRef.yVaultSupply()
-    let y_amount = ratio * UFix64(${xamt})
+    let ratio = dexRef.yVaultSupply() / dexRef.xVaultSupply()
+    let y_amount = ratio * UFix64(${flowAmt})
       
 
     log("Hello")

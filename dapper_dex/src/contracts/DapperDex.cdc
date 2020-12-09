@@ -55,6 +55,9 @@ pub contract DapperDex {
 
       let ratio = self.yVault.balance / self.xVault.balance
       let y_amount = ratio * x_amount
+      log(from1.balance)
+      log(from2.balance)
+      log(y_amount)
       assert(y_amount <= from2.balance, message: "Intended y amount is greater than Y vault Balance")
 
       let numLPTokens = (x_amount / self.xVault.balance) * self.totalLPTokens
@@ -181,7 +184,7 @@ pub contract DapperDex {
     }
 
     pub fun quotedPrice(xBit: UFix64, swapAmt: UFix64): UFix64 {
-     if (xBit == UFix64(1)) {
+     if (xBit == UFix64(0)) {
         return self.price(input_amount: swapAmt, input_reserve: self.xVault.balance, output_reserve: self.yVault.balance)
      } else {
         return self.price(input_amount: swapAmt, input_reserve: self.yVault.balance, output_reserve: self.xVault.balance)
